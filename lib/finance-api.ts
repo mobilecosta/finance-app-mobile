@@ -73,7 +73,8 @@ export interface CategoryData {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${BASE_URL}/api${path}`;
+  // Ajustado para o novo prefixo /api/finance do backend Express
+  const url = `${BASE_URL}/api/finance${path}`;
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
     credentials: "include",
@@ -103,8 +104,8 @@ export const authApi = {
 
 // Accounts
 export const accountsApi = {
-  getAll: () => request<Account[]>("/accounts"),
-  create: (data: Omit<Account, "id">) =>
+  getAll: (userId: string) => request<Account[]>(`/accounts?userId=${userId}`),
+  create: (data: Omit<Account, "id"> & { userId: string }) =>
     request<Account>("/accounts", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Account>) =>
     request<Account>(`/accounts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -114,8 +115,8 @@ export const accountsApi = {
 
 // Categories
 export const categoriesApi = {
-  getAll: () => request<Category[]>("/categories"),
-  create: (data: Omit<Category, "id">) =>
+  getAll: (userId: string) => request<Category[]>(`/categories?userId=${userId}`),
+  create: (data: Omit<Category, "id"> & { userId: string }) =>
     request<Category>("/categories", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Category>) =>
     request<Category>(`/categories/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -125,11 +126,12 @@ export const categoriesApi = {
 
 // Transactions
 export const transactionsApi = {
-  getAll: (params?: Record<string, string>) => {
-    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+  getAll: (userId: string, params?: Record<string, string>) => {
+    const queryParams = { ...params, userId };
+    const qs = "?" + new URLSearchParams(queryParams).toString();
     return request<Transaction[]>(`/transactions${qs}`);
   },
-  create: (data: Omit<Transaction, "id" | "categories" | "accounts">) =>
+  create: (data: Omit<Transaction, "id" | "categories" | "accounts"> & { userId: string }) =>
     request<Transaction>("/transactions", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Transaction>) =>
     request<Transaction>(`/transactions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -139,12 +141,14 @@ export const transactionsApi = {
 
 // Dashboard
 export const dashboardApi = {
-  getMetrics: (startDate: string, endDate: string) =>
-    request<DashboardMetrics>(`/dashboard/metrics?startDate=${startDate}&endDate=${endDate}`),
-  getMonthly: (startDate: string, endDate: string) =>
-    request<MonthlyData[]>(`/dashboard/monthly?startDate=${startDate}&endDate=${endDate}`),
-  getByCategory: (startDate: string, endDate: string, type?: string) => {
-    const params = new URLSearchParams({ startDate, endDate });
+  getDashboard: (userId: string) =>
+    request<any>(`/dashboard?userId=${userId}`),
+  getMetrics: (userId: string, startDate: string, endDate: string) =>
+    request<DashboardMetrics>(`/dashboard/metrics?userId=${userId}&startDate=${startDate}&endDate=${endDate}`),
+  getMonthly: (userId: string, startDate: string, endDate: string) =>
+    request<MonthlyData[]>(`/dashboard/monthly?userId=${userId}&startDate=${startDate}&endDate=${endDate}`),
+  getByCategory: (userId: string, startDate: string, endDate: string, type?: string) => {
+    const params = new URLSearchParams({ userId, startDate, endDate });
     if (type) params.append("type", type);
     return request<CategoryData[]>(`/dashboard/by-category?${params.toString()}`);
   },
