@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { sdk } from "./sdk";
+import financeRouter from "../routes/finance";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -31,7 +33,7 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Enable CORS for all routes - reflect the request origin to support credentials
+  // Enable CORS for all routes
   app.use((req, res, next) => {
     const origin = req.headers.origin;
     if (origin) {
@@ -44,7 +46,6 @@ async function startServer() {
     );
     res.header("Access-Control-Allow-Credentials", "true");
 
-    // Handle preflight requests
     if (req.method === "OPTIONS") {
       res.sendStatus(200);
       return;
@@ -69,6 +70,18 @@ async function startServer() {
       createContext,
     }),
   );
+
+  // Finance routes — inject authenticated user into req.ctx
+  app.use("/api", async (req, _res, next) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      (req as typeof req & { ctx: { user: typeof user } }).ctx = { user };
+    } catch {
+      // unauthenticated — routes will return 401
+    }
+    next();
+  });
+  app.use("/api", financeRouter);
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

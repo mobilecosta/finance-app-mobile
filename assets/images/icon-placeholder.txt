@@ -1,0 +1,2 @@
+# Ícones do app Finance Pro
+Os ícones serão gerados durante o build
