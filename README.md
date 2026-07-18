@@ -393,6 +393,235 @@ eas build --platform android --local
 3. Escaneie o QR code para testar
 4. Distribua o APK/IPA conforme necessário
 
+## 📦 Publicação de APK
+
+### Opção 1: Publicar via Manus Platform (Recomendado)
+
+A forma mais simples de publicar o APK é através da plataforma Manus:
+
+#### Passos:
+
+1. **Acesse o Management UI**
+   - Clique no ícone de menu (⋯) no canto superior direito
+   - Ou clique no botão "View" no card do projeto
+
+2. **Localize o botão "Publish"**
+   - Está no header superior direito da Management UI
+   - Só aparece após criar um checkpoint
+
+3. **Clique em "Publish"**
+   - O sistema iniciará o build do APK automaticamente
+   - Você verá um indicador de progresso
+
+4. **Aguarde o build completar**
+   - Tempo estimado: 5-15 minutos
+   - Você receberá notificação quando estiver pronto
+
+5. **Baixe o APK**
+   - Após o build, clique em "Download APK"
+   - O arquivo será salvo em seu dispositivo
+
+6. **Instale no dispositivo**
+   - Transfira o APK para seu Android
+   - Abra o arquivo e siga as instruções de instalação
+   - Ou escaneie o QR code fornecido para instalar via Expo Go
+
+#### Vantagens:
+- ✅ Sem configuração adicional
+- ✅ Build otimizado automaticamente
+- ✅ Suporte técnico incluído
+- ✅ Hospedagem na nuvem
+
+---
+
+### Opção 2: Build Local com EAS CLI
+
+Para mais controle, você pode fazer build local:
+
+#### Pré-requisitos:
+
+1. **Criar conta Expo**
+   ```bash
+   # Visite https://expo.dev e crie uma conta
+   ```
+
+2. **Instalar EAS CLI**
+   ```bash
+   npm install -g eas-cli
+   ```
+
+3. **Fazer login**
+   ```bash
+   eas login
+   # Insira suas credenciais Expo
+   ```
+
+#### Build para Android (APK):
+
+```bash
+# Build APK (recomendado para testes)
+eas build --platform android --local
+
+# Ou build AAB (para Google Play Store)
+eas build --platform android --local --app-build-type aab
+```
+
+#### Build para iOS (IPA):
+
+```bash
+# Build IPA para testes
+eas build --platform ios --local
+
+# Ou build para App Store
+eas build --platform ios --local --app-build-type app-store
+```
+
+#### Configuração de Build (eas.json):
+
+```json
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildType": "simulator"
+      }
+    },
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "ios": {
+        "buildType": "archive"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildType": "archive"
+      }
+    }
+  }
+}
+```
+
+#### Vantagens:
+- ✅ Controle total sobre configurações
+- ✅ Build mais rápido (local)
+- ✅ Suporte a múltiplas variantes
+- ✅ Integração com CI/CD
+
+---
+
+### Opção 3: Build Manual com Expo CLI
+
+Para desenvolvimento rápido:
+
+```bash
+# Iniciar build interativo
+expо build:android
+
+# Ou com opções específicas
+expo build:android --release-channel production
+```
+
+**Nota:** Este método é mais lento que EAS.
+
+---
+
+### Distribuição do APK
+
+#### Via Google Play Store:
+
+1. **Criar conta Google Play Developer**
+   - Visite https://play.google.com/console
+   - Pague taxa de registro ($25)
+
+2. **Criar aplicação**
+   - Clique em "Create app"
+   - Preencha informações básicas
+
+3. **Upload do AAB**
+   ```bash
+   # Build AAB (não APK)
+   eas build --platform android --local --app-build-type aab
+   ```
+
+4. **Preencher detalhes**
+   - Screenshots
+   - Descrição
+   - Categoria
+   - Classificação etária
+
+5. **Enviar para revisão**
+   - Clique em "Submit for review"
+   - Aguarde aprovação (24-48 horas)
+
+#### Via Distribuição Direta (APK):
+
+1. **Gerar APK assinado**
+   ```bash
+   eas build --platform android --local
+   ```
+
+2. **Compartilhar arquivo**
+   - Via email
+   - Via link de download
+   - Via QR code
+
+3. **Usuários instalam**
+   - Baixam o APK
+   - Habilitam "Fontes desconhecidas" em Segurança
+   - Instalam o aplicativo
+
+---
+
+### Checklist Pré-Publicação
+
+Antes de publicar, verifique:
+
+- [ ] Versão atualizada em `app.config.ts`
+- [ ] Logo/ícone configurado corretamente
+- [ ] Todas as telas testadas
+- [ ] API backend funcionando
+- [ ] Banco de dados configurado
+- [ ] Variáveis de ambiente corretas
+- [ ] Sem erros de TypeScript/ESLint
+- [ ] Testes passando
+- [ ] README atualizado
+- [ ] Changelog documentado
+
+---
+
+### Monitoramento Pós-Publicação
+
+Após publicar, monitore:
+
+1. **Crashes e Errors**
+   - Use Sentry ou similar
+   - Configure em `app/_layout.tsx`
+
+2. **Performance**
+   - Monitore tempo de startup
+   - Verifique uso de memória
+   - Analise consumo de bateria
+
+3. **Analytics**
+   - Rastreie eventos de usuário
+   - Monitore retenção
+   - Analise fluxos de uso
+
+4. **Feedback de Usuários**
+   - Revise avaliações na store
+   - Responda comentários
+   - Corrija bugs reportados
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Erro: "Database not available"
