@@ -120,11 +120,19 @@ const config: ExpoConfig = {
         },
       },
     ],
+    "expo-asset",
+    "expo-font",
+    "expo-web-browser",
   ],
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
   },
+  extra: {
+    eas: {
+      projectId: "6dfe3bbc-06da-48e2-91b8-a9f5a179f1fe"
+    }
+  }
 };
 
 export default config;
