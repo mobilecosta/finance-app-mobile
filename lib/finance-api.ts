@@ -2,7 +2,6 @@ import { Platform } from "react-native";
 import { getSessionToken } from "./_core/auth";
 
 const getBaseUrl = () => {
-  if (Platform.OS === "web") return "";
   return process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 };
 
@@ -73,7 +72,7 @@ export interface CategoryData {
   percentage: number;
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: RequestInit & { prefix?: string }): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((options?.headers as Record<string, string>) || {}),
@@ -86,7 +85,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     }
   }
 
-  const url = `${BASE_URL}/api/finance${path}`;
+  const prefix = options?.prefix ?? "/api/finance";
+  const url = `${BASE_URL}${prefix}${path}`;
   const res = await fetch(url, { headers, ...options });
 
   if (!res.ok) {
@@ -112,16 +112,18 @@ export const authApi = {
     request<{ token: string; user: FinanceUser }>("/auth/signup", {
       method: "POST",
       body: JSON.stringify({ email, password, fullName }),
+      prefix: "/api",
     }),
   signin: (email: string, password: string) =>
     request<{ token: string; user: FinanceUser }>("/auth/signin", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+      prefix: "/api",
     }),
   signout: () =>
-    request<{ message: string }>("/auth/signout", { method: "POST" }),
+    request<{ message: string }>("/auth/signout", { method: "POST", prefix: "/api" }),
   getCurrentUser: () =>
-    request<FinanceUser>("/auth/user"),
+    request<FinanceUser>("/auth/user", { prefix: "/api" }),
 };
 
 // Accounts

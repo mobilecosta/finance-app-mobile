@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { sdk } from "./sdk";
 import financeRouter from "../routes/finance";
+import authRouter from "../routes/auth";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -59,6 +60,8 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
 
+  app.use("/api/auth", authRouter);
+
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
   });
@@ -72,7 +75,7 @@ async function startServer() {
   );
 
   // Finance routes — inject authenticated user into req.ctx
-  app.use("/api", async (req, _res, next) => {
+  app.use("/api/finance", async (req, _res, next) => {
     try {
       const user = await sdk.authenticateRequest(req);
       (req as typeof req & { ctx: { user: typeof user } }).ctx = { user };
@@ -81,7 +84,7 @@ async function startServer() {
     }
     next();
   });
-  app.use("/api", financeRouter);
+  app.use("/api/finance", financeRouter);
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

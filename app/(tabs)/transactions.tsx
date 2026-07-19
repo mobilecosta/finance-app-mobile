@@ -45,8 +45,8 @@ interface FormData {
   description: string;
   date: string;
   status: "completed" | "pending" | "cancelled";
-  categoryId: string;
-  accountId: string;
+  categoryId: number | string;
+  accountId: number | string;
 }
 
 const defaultForm: FormData = {
@@ -108,8 +108,8 @@ export default function TransactionsScreen() {
       description: tx.description ?? "",
       date: tx.date,
       status: (["completed", "pending", "cancelled"].includes(tx.status) ? tx.status : "completed") as "completed" | "pending" | "cancelled",
-      categoryId: String(tx.categoryId),
-      accountId: String(tx.accountId),
+      categoryId: tx.categoryId,
+      accountId: tx.accountId,
     });
     setModalVisible(true);
   };
@@ -209,7 +209,7 @@ export default function TransactionsScreen() {
             <TouchableOpacity onPress={() => openEdit(item)} style={styles.actionBtn}>
               <IconSymbol name="pencil" size={14} color="#94a3b8" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.actionBtn}>
+            <TouchableOpacity onPress={() => handleDelete(String(item.id))} style={styles.actionBtn}>
               <IconSymbol name="trash" size={14} color="#ef4444" />
             </TouchableOpacity>
           </View>
@@ -262,7 +262,7 @@ export default function TransactionsScreen() {
         ) : (
           <FlatList
             data={filtered}
-            keyExtractor={item => item.id}
+            keyExtractor={item => String(item.id)}
             renderItem={renderItem}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />}
             contentContainerStyle={filtered.length === 0 ? styles.emptyContainer : { paddingBottom: 100 }}
@@ -388,13 +388,13 @@ export default function TransactionsScreen() {
                           key={c.id}
                           style={[
                             styles.chip,
-                            form.categoryId === c.id && { borderColor: c.color, backgroundColor: c.color + "22" },
+                            String(form.categoryId) === String(c.id) && { borderColor: c.color, backgroundColor: c.color + "22" },
                           ]}
-                          onPress={() => setForm(f => ({ ...f, categoryId: c.id }))}
+                          onPress={() => setForm(f => ({ ...f, categoryId: String(c.id) }))}
                         >
-                          <Text style={[styles.chipText, form.categoryId === c.id && { color: c.color }]}>
-                            {c.name}
-                          </Text>
+                            <Text style={[styles.chipText, String(form.categoryId) === String(c.id) && { color: c.color }]}>
+                              {c.name}
+                            </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -413,13 +413,13 @@ export default function TransactionsScreen() {
                           key={a.id}
                           style={[
                             styles.chip,
-                            form.accountId === a.id && { borderColor: a.color, backgroundColor: a.color + "22" },
+                            String(form.accountId) === String(a.id) && { borderColor: a.color, backgroundColor: a.color + "22" },
                           ]}
-                          onPress={() => setForm(f => ({ ...f, accountId: a.id }))}
+                          onPress={() => setForm(f => ({ ...f, accountId: String(a.id) }))}
                         >
-                          <Text style={[styles.chipText, form.accountId === a.id && { color: a.color }]}>
-                            {a.name}
-                          </Text>
+                            <Text style={[styles.chipText, String(form.accountId) === String(a.id) && { color: a.color }]}>
+                              {a.name}
+                            </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
