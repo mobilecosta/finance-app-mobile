@@ -169,13 +169,38 @@ router.delete("/transactions/:id", async (req, res) => {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
+function getPeriodRange(period?: string): { startDate: string; endDate: string } {
+  const now = new Date();
+  let start: Date;
+  let end: Date = now;
+
+  switch (period) {
+    case "quarter":
+      start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+      break;
+    case "year":
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    case "month":
+    default:
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+  }
+
+  return {
+    startDate: start.toISOString().split("T")[0]!,
+    endDate: end.toISOString().split("T")[0]!,
+  };
+}
+
 router.get("/dashboard/metrics", async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
   try {
-    const { startDate, endDate } = req.query as Record<string, string>;
-    if (!startDate || !endDate) return res.status(400).json({ error: "startDate e endDate são obrigatórios" });
-    const data = await financeService.getDashboardMetrics(userId, startDate, endDate);
+    const { startDate, endDate, period } = req.query as Record<string, string>;
+    const range = period ? getPeriodRange(period) : { startDate, endDate };
+    if (!range.startDate || !range.endDate) return res.status(400).json({ error: "startDate e endDate são obrigatórios" });
+    const data = await financeService.getDashboardMetrics(userId, range.startDate, range.endDate);
     res.json(data);
   } catch (e: unknown) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Erro interno" });
@@ -186,9 +211,10 @@ router.get("/dashboard/monthly", async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
   try {
-    const { startDate, endDate } = req.query as Record<string, string>;
-    if (!startDate || !endDate) return res.status(400).json({ error: "startDate e endDate são obrigatórios" });
-    const data = await financeService.getMonthlyData(userId, startDate, endDate);
+    const { startDate, endDate, period } = req.query as Record<string, string>;
+    const range = period ? getPeriodRange(period) : { startDate, endDate };
+    if (!range.startDate || !range.endDate) return res.status(400).json({ error: "startDate e endDate são obrigatórios" });
+    const data = await financeService.getMonthlyData(userId, range.startDate, range.endDate);
     res.json(data);
   } catch (e: unknown) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Erro interno" });

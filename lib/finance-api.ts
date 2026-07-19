@@ -78,11 +78,9 @@ async function request<T>(path: string, options?: RequestInit & { prefix?: strin
     ...((options?.headers as Record<string, string>) || {}),
   };
 
-  if (Platform.OS !== "web") {
-    const token = await getSessionToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+  const token = await getSessionToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const prefix = options?.prefix ?? "/api/finance";
