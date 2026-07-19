@@ -86,8 +86,17 @@ EXPO_PUBLIC_API_URL=https://finance-backend-mobile.vercel.app/
 ### 4. Iniciar o App
 
 ```bash
+# Iniciar servidor backend local (necessário para autenticação e API)
+pnpm dev:server
+
+# Em outro terminal, iniciar o app (web)
 pnpm dev:metro
+
+# Ou inicie ambos simultaneamente
+pnpm dev
 ```
+
+> Para testar o login local, use as credenciais: `mobile.costa@gmail.com` / `30331@Wag`
 
 ## 📁 Estrutura do Projeto (Frontend)
 
@@ -100,12 +109,21 @@ finance-app-mobile/
 ├── lib/                          
 │   └── finance-api.ts           # Cliente de consumo da API Express
 ├── constants/                    # Constantes e temas
-└── assets/                       # Imagens e fontes
+├── server/                       # Servidor backend local
+│   ├── _core/                    # Core do servidor (OAuth, tRPC)
+│   ├── routes/
+│   │   ├── finance.ts           # Rotas financeiras (/api/finance/*)
+│   │   └── auth.ts              # Rotas de autenticação (/api/auth/*)
+│   └── services/                 # Lógica de negócio
+├── assets/                       # Imagens e fontes
+└── drizzle/                      # Schema do banco (Drizzle ORM)
 ```
 
 ## 🔌 API Endpoints
 
-O frontend consome a API REST do [finance-backend](https://github.com/mobilecosta/finance-backend) através do cliente em `lib/finance-api.ts`. A autenticação é feita via Bearer token JWT armazenado no `SecureStore` (nativo) ou `localStorage` (web).
+O frontend consome a API REST através do cliente em `lib/finance-api.ts`. Por padrão, o `EXPO_PUBLIC_API_URL` aponta para o backend hospedado em produção. Para desenvolvimento local, altere para `http://localhost:3000`.
+
+**Endpoints de autenticação** (`/api/auth/*`) são públicos. **Endpoints financeiros** (`/api/finance/*`) exigem `Authorization: Bearer <token>`.
 
 ### Autenticação (`/api/auth`)
 
@@ -179,12 +197,14 @@ O frontend consome a API REST do [finance-backend](https://github.com/mobilecost
 
 ### Autenticação
 
-Todas as requisições às rotas `/api/finance/*` exigem o header:
+Requisições às rotas `/api/finance/*` exigem o header:
 ```
 Authorization: Bearer <token_jwt>
 ```
 
-O token é obtido no login/cadastro e armazenado automaticamente via `lib/_core/auth.ts`. O cliente em `lib/finance-api.ts` lê o token e o envia em todas as chamadas.
+O token é obtido no login/cadastro (`/api/auth/signin`) e armazenado automaticamente via `lib/_core/auth.ts`. O cliente em `lib/finance-api.ts` lê o token e o envia em todas as chamadas para `/api/finance/*`.
+
+> A rota de auth (`/api/auth/*`) utiiza o prefixo `/api` enquanto as rotas financeiras utilizam `/api/finance`.
 
 ## 🧪 Testes
 
