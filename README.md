@@ -75,7 +75,13 @@ cd finance-app-mobile
 pnpm install
 ```
 
-Certifique-se de que o `EXPO_PUBLIC_API_URL` no seu ambiente ou no arquivo `lib/finance-api.ts` aponta para o endereço do seu backend (padrão: `http://localhost:3000`).
+Certifique-se de que o `EXPO_PUBLIC_API_URL` no arquivo `.env` aponte para o endereço do backend:
+
+```env
+EXPO_PUBLIC_API_URL=https://finance-backend-mobile.vercel.app/
+```
+
+> Para desenvolvimento local, use: `EXPO_PUBLIC_API_URL=http://localhost:3000`
 
 ### 4. Iniciar o App
 
@@ -97,13 +103,88 @@ finance-app-mobile/
 └── assets/                       # Imagens e fontes
 ```
 
-## 🔌 Integração com API
+## 🔌 API Endpoints
 
-O frontend consome a API através do cliente centralizado em `lib/finance-api.ts`. Os endpoints principais incluem:
+O frontend consome a API REST do [finance-backend](https://github.com/mobilecosta/finance-backend) através do cliente em `lib/finance-api.ts`. A autenticação é feita via Bearer token JWT armazenado no `SecureStore` (nativo) ou `localStorage` (web).
 
-- `GET /api/finance/dashboard`: Resumo financeiro do usuário.
-- `GET /api/finance/transactions`: Listagem de transações.
-- `POST /api/finance/transactions`: Criação de novos registros.
+### Autenticação (`/api/auth`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/auth/signup` | Cria um novo usuário |
+| POST | `/api/auth/signin` | Autentica e retorna token + user |
+| POST | `/api/auth/signout` | Encerra sessão |
+| GET | `/api/auth/user` | Retorna dados do usuário logado |
+
+```json
+// POST /api/auth/signin
+// Request: { "email": "user@email.com", "password": "123456" }
+// Response: { "token": "jwt...", "user": { "id": "uuid", "email": "...", "name": "..." } }
+```
+
+### Contas (`/api/finance/accounts`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/finance/accounts` | Lista todas as contas do usuário |
+| POST | `/api/finance/accounts` | Cria nova conta |
+| PUT | `/api/finance/accounts/:id` | Atualiza conta |
+| DELETE | `/api/finance/accounts/:id` | Remove conta |
+
+```json
+// POST /api/finance/accounts
+// Request: { "name": "Conta Corrente", "type": "checking", "balance": 1000 }
+// Response: { "id": 1, "name": "Conta Corrente", "type": "checking", "balance": "1000.00", "color": "#3b82f6", ... }
+```
+
+### Categorias (`/api/finance/categories`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/finance/categories` | Lista todas as categorias |
+| POST | `/api/finance/categories` | Cria nova categoria |
+| PUT | `/api/finance/categories/:id` | Atualiza categoria |
+| DELETE | `/api/finance/categories/:id` | Remove categoria |
+
+```json
+// POST /api/finance/categories
+// Request: { "name": "Alimentação", "type": "expense", "color": "#10b981" }
+// Response: { "id": 1, "name": "Alimentação", "type": "expense", "color": "#10b981", ... }
+```
+
+### Transações (`/api/finance/transactions`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/finance/transactions` | Lista transações |
+| POST | `/api/finance/transactions` | Cria transação (atualiza saldo da conta) |
+| PUT | `/api/finance/transactions/:id` | Atualiza transação (ajusta saldo) |
+| DELETE | `/api/finance/transactions/:id` | Remove transação (reverte saldo) |
+
+```json
+// POST /api/finance/transactions
+// Request: { "accountId": 1, "categoryId": 1, "type": "expense", "amount": 150.00, "description": "Mercado", "date": "2026-07-19", "status": "completed" }
+// Response: { "id": 1, "type": "expense", "amount": "150.00", "description": "Mercado", "category": {...}, "account": {...} }
+```
+
+### Dashboard (`/api/finance/dashboard/metrics`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/finance/dashboard/metrics?period=month` | Métricas do dashboard |
+
+```json
+// Response: { "totalBalance": 5000, "totalIncome": 10000, "totalExpense": 5000, "transactionCount": 42, "monthlyData": [...], "categoryDistribution": [...], "recentTransactions": [...] }
+```
+
+### Autenticação
+
+Todas as requisições às rotas `/api/finance/*` exigem o header:
+```
+Authorization: Bearer <token_jwt>
+```
+
+O token é obtido no login/cadastro e armazenado automaticamente via `lib/_core/auth.ts`. O cliente em `lib/finance-api.ts` lê o token e o envia em todas as chamadas.
 
 ## 🧪 Testes
 
