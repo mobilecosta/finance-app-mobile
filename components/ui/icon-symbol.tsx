@@ -39,6 +39,7 @@ const MAPPING = {
   "chevron.up": "expand-less",
   "eye": "visibility",
   "eye.slash": "visibility-off",
+  "doc.text.fill": "description",
 } as IconMapping;
 
 /**

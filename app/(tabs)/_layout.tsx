@@ -43,6 +43,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="nfse"
+        options={{
+          title: "NFS-e",
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.text.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Perfil",
