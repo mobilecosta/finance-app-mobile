@@ -86,8 +86,8 @@ export default function DashboardScreen() {
       const endDate = `${y}-${m}-${String(lastDay).padStart(2, "0")}`;
 
       const [metricsData, txData] = await Promise.all([
-        dashboardApi.getMetrics(startDate, endDate),
-        transactionsApi.getAll({ startDate, endDate }),
+        dashboardApi.getMetrics("month"),
+        transactionsApi.getAll(),
       ]);
 
       setMetrics(metricsData);

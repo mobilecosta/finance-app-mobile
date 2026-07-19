@@ -101,15 +101,15 @@ export default function TransactionsScreen() {
   };
 
   const openEdit = (tx: Transaction) => {
-    setEditingId(tx.id);
+    setEditingId(String(tx.id));
     setForm({
       type: tx.type,
       amount: tx.amount,
       description: tx.description ?? "",
       date: tx.date,
       status: (["completed", "pending", "cancelled"].includes(tx.status) ? tx.status : "completed") as "completed" | "pending" | "cancelled",
-      categoryId: tx.categoryId,
-      accountId: tx.accountId,
+      categoryId: String(tx.categoryId),
+      accountId: String(tx.accountId),
     });
     setModalVisible(true);
   };
@@ -122,11 +122,14 @@ export default function TransactionsScreen() {
     setSaving(true);
     try {
       if (editingId) {
-        await transactionsApi.update(editingId, {
+        await transactionsApi.update(Number(editingId), {
+          type: form.type,
           amount: form.amount,
           description: form.description,
-          status: form.status,
           date: form.date,
+          status: form.status,
+          categoryId: Number(form.categoryId),
+          accountId: Number(form.accountId),
         });
       } else {
         await transactionsApi.create({
@@ -135,8 +138,8 @@ export default function TransactionsScreen() {
           description: form.description,
           date: form.date,
           status: form.status,
-          categoryId: form.categoryId,
-          accountId: form.accountId,
+          categoryId: Number(form.categoryId),
+          accountId: Number(form.accountId),
         });
       }
       setModalVisible(false);
@@ -156,7 +159,7 @@ export default function TransactionsScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            await transactionsApi.delete(id);
+            await transactionsApi.delete(Number(id));
             loadData();
           } catch {
             Alert.alert("Erro", "Não foi possível excluir");

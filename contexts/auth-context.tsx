@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { authApi, type FinanceUser } from "@/lib/finance-api";
+import { setSessionToken, removeSessionToken } from "@/lib/_core/auth";
 
 interface AuthContextType {
   user: FinanceUser | null;
@@ -22,12 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       try {
         setLoading(true);
-        const result = await authApi.getCurrentUser();
-        if (result?.success && result?.data) {
-          setUser(result.data);
-        } else {
-          setUser(null);
-        }
+        const userData = await authApi.getCurrentUser();
+        setUser(userData);
       } catch {
         setUser(null);
       } finally {
@@ -42,12 +39,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       setLoading(true);
       const result = await authApi.signin(email, password);
-      if (!result?.success) {
-        setError(result?.error ?? "Falha ao entrar");
-        return false;
+      if (result.token) {
+        await setSessionToken(result.token);
       }
-      if (result?.data?.user) {
-        setUser(result.data.user);
+      if (result.user) {
+        setUser(result.user);
         return true;
       }
       return false;
@@ -64,12 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       setLoading(true);
       const result = await authApi.signup(email, password, fullName);
-      if (!result?.success) {
-        setError(result?.error ?? "Falha ao criar conta");
-        return false;
+      if (result.token) {
+        await setSessionToken(result.token);
       }
-      if (result?.data?.user) {
-        setUser(result.data.user);
+      if (result.user) {
+        setUser(result.user);
         return true;
       }
       return false;
@@ -85,8 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await authApi.signout();
+      await removeSessionToken();
       setUser(null);
     } catch {
+      await removeSessionToken();
       setUser(null);
     } finally {
       setLoading(false);
